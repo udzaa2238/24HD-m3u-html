@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Master M3U เมนูด้านข้างเต็มจอโลโก้ใหญ่พื้นแดง</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #container {
+      display: flex;
+      height: 100%;
+    }
+
+    #menuOverlay {
+      width: 240px;
+      background: #e0bbff; /* พื้นหลังม่วงพาสเทล */
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    .menu-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      color: #000;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      padding: 8px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .menu-item img {
+      width: 100%;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 5px;
+    }
+
+    .menu-item.active {
+      background: #e53935;
+      color: #fff;
+      outline: 3px solid yellow;
+    }
+
+    #videoContainer {
+      flex: 1;
+      background: black;
+      position: relative;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      background: black;
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <div id="menuOverlay"></div>
+  <div id="videoContainer">
+    <video id="video" controls autoplay></video>
+  </div>
+</div>
+
+<script>
+  const video = document.getElementById('video');
+  const menuOverlay = document.getElementById('menuOverlay');
+  let currentIndex = 0;
+  let playlist = [];
+
+  const m3uUrl = "https://dl.dropbox.com/scl/fi/3014hr11cbflsersf3orj/DC-Universe.m3u?rlkey=6fw5f73r3kb52j053mhjylsal&dl=0";
+
+  async function loadPlaylist() {
+    const res = await fetch(m3uUrl);
+    const text = await res.text();
+    const lines = text.split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith("#EXTINF")) {
+        const info = lines[i];
+        const url = lines[i + 1];
+        const titleMatch = info.match(/,(.*)/);
+        const logoMatch = info.match(/tvg-logo="([^"]+)"/);
+        const title = titleMatch ? titleMatch[1].trim() : "No Title";
+        const logo = logoMatch ? logoMatch[1].trim() : "";
+
+        playlist.push({ title, url, logo });
+      }
+    }
+    createMenu();
+    playVideo(currentIndex);
+  }
+
+  function createMenu() {
+    menuOverlay.innerHTML = "";
+    playlist.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'menu-item';
+      if (i === currentIndex) div.classList.add('active');
+
+      if (item.logo) {
+        const img = document.createElement('img');
+        img.src = item.logo;
+        div.appendChild(img);
+      }
+
+      const title = document.createElement('div');
+      title.textContent = item.title;
+      div.appendChild(title);
+
+      div.onclick = () => playVideo(i);
+      menuOverlay.appendChild(div);
+    });
+  }
+
+  function playVideo(index) {
+    currentIndex = index;
+    document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+    const items = document.querySelectorAll('.menu-item');
+    if (items[index]) items[index].classList.add('active');
+
+    video.src = playlist[index].url;
+    video.play();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    const key = e.key;
+    if (key === 'ArrowDown') {
+      currentIndex = (currentIndex + 1) % playlist.length;
+      scrollMenuTo(currentIndex);
+    } else if (key === 'ArrowUp') {
+      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+      scrollMenuTo(currentIndex);
+    } else if (key === 'Enter') {
+      playVideo(currentIndex);
+    }
+  });
+
+  function scrollMenuTo(index) {
+    const items = document.querySelectorAll('.menu-item');
+    items.forEach(el => el.classList.remove('active'));
+    if (items[index]) {
+      items[index].classList.add('active');
+      items[index].scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  loadPlaylist();
+</script>
+
+</body>
+</html>
