@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>TV Overlay Menu + Remote + เมนูด้านซ้าย</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    #container {
+      display: flex;
+      height: 100%;
+      width: 100%;
+    }
+    #menuOverlay {
+      width: 200px;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 10px;
+      box-sizing: border-box;
+      z-index: 2;
+      transition: opacity 0.3s;
+    }
+    .menu-item {
+      min-height: 140px;
+      background: #fff;
+      color: #000;
+      border-radius: 8px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+    .menu-item img {
+      width: 100%;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 5px;
+    }
+    .menu-item.active {
+      background: #e53935;
+      color: #fff;
+      outline: 3px solid yellow;
+    }
+    #videoContainer {
+      flex: 1;
+      background: black;
+      position: relative;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      background: black;
+    }
+  </style>
+</head>
+<body>
+  <div id="videoContainer">
+    <video id="video" controls autoplay></video>
+    <div id="menuOverlay"></div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const menuOverlay = document.getElementById('menuOverlay');
+    let currentIndex = 0;
+    let playlist = [];
+
+    const m3uUrl = "https://dl.dropbox.com/scl/fi/vcddu6of5mdh1ykudmhdo/seriesday_amazon-prime-video.m3u?rlkey=wuav45eqk3gvekg609r9t1uin&dl=1";
+
+    async function loadPlaylist() {
+      const res = await fetch(m3uUrl);
+      const text = await res.text();
+      const lines = text.split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith("#EXTINF")) {
+          const info = lines[i];
+          const url = lines[i + 1];
+          const titleMatch = info.match(/,(.*)/);
+          const logoMatch = info.match(/tvg-logo="([^"]+)"/);
+          const title = titleMatch ? titleMatch[1].trim() : "No Title";
+          const logo = logoMatch ? logoMatch[1].trim() : "";
+
+          playlist.push({ title, url, logo });
+        }
+      }
+      createMenu();
+      playVideo(currentIndex);
+      showMenu();
+    }
+
+    function createMenu() {
+      menuOverlay.innerHTML = "";
+      playlist.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'menu-item';
+        if (i === currentIndex) div.classList.add('active');
+
+        if (item.logo) {
+          const img = document.createElement('img');
+          img.src = item.logo;
+          div.appendChild(img);
+        }
+
+        const title = document.createElement('div');
+        title.textContent = item.title;
+        div.appendChild(title);
+
+        div.onclick = () => playVideo(i);
+        menuOverlay.appendChild(div);
+      });
+    }
+
+    function playVideo(index) {
+      currentIndex = index;
+      document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+      const items = document.querySelectorAll('.menu-item');
+      if (items[index]) items[index].classList.add('active');
+
+      video.src = playlist[index].url;
+      video.play();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const key = e.key;
+      if (key === 'ArrowRight') {
+        currentIndex = (currentIndex + 1) % playlist.length;
+        scrollMenuTo(currentIndex);
+      } else if (key === 'ArrowLeft') {
+        currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+        scrollMenuTo(currentIndex);
+      } else if (key === 'Enter') {
+        playVideo(currentIndex);
+        hideMenu();
+      }
+    });
+
+    function scrollMenuTo(index) {
+      const items = document.querySelectorAll('.menu-item');
+      items.forEach(el => el.classList.remove('active'));
+      if (items[index]) {
+        items[index].classList.add('active');
+        items[index].scrollIntoView({ behavior: "smooth", inline: "center" });
+      }
+    }
+
+    video.addEventListener('click', showMenu);
+    video.addEventListener('touchstart', showMenu);
+
+    let menuTimeout;
+    function showMenu() {
+      menuOverlay.style.opacity = '1';
+      clearTimeout(menuTimeout);
+      menuTimeout = setTimeout(() => {
+        hideMenu();
+      }, 5000);
+    }
+
+    function hideMenu() {
+      menuOverlay.style.opacity = '0';
+    }
+
+    loadPlaylist();
+  </script>
+</body>
+</html>
+  <div id="container">
+    <div id="
