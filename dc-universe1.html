@@ -50,7 +50,7 @@
       margin-bottom: 10px;
     }
     .menu-item img {
-      width: 100%;
+      width: 70%;
       height: 70px;
       object-fit: contain;
       margin-bottom: 5px;
@@ -173,9 +173,7 @@
       video.src = filteredPlaylist[index].url;
       video.play();
 
-      // Fullscreen
-      if (video.requestFullscreen) video.requestFullscreen();
-    }
+      }
 
     document.addEventListener('keydown', (e) => {
       const key = e.key;
