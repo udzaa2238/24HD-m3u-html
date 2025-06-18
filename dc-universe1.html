@@ -18,7 +18,7 @@
       width: 100%;
     }
     #menuOverlay {
-      width: 200px;
+      width: 220px;
       background: rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
@@ -68,9 +68,11 @@
   </style>
 </head>
 <body>
-  <div id="videoContainer">
-    <video id="video" controls autoplay></video>
+  <div id="container">
     <div id="menuOverlay"></div>
+    <div id="videoContainer">
+      <video id="video" controls autoplay></video>
+    </div>
   </div>
 
   <script>
@@ -136,10 +138,10 @@
 
     document.addEventListener('keydown', (e) => {
       const key = e.key;
-      if (key === 'ArrowRight') {
+      if (key === 'ArrowDown') {
         currentIndex = (currentIndex + 1) % playlist.length;
         scrollMenuTo(currentIndex);
-      } else if (key === 'ArrowLeft') {
+      } else if (key === 'ArrowUp') {
         currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
         scrollMenuTo(currentIndex);
       } else if (key === 'Enter') {
@@ -153,7 +155,7 @@
       items.forEach(el => el.classList.remove('active'));
       if (items[index]) {
         items[index].classList.add('active');
-        items[index].scrollIntoView({ behavior: "smooth", inline: "center" });
+        items[index].scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
 
@@ -177,5 +179,3 @@
   </script>
 </body>
 </html>
-  <div id="container">
-    <div id="
